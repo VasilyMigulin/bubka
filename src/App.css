@@ -1,0 +1,39 @@
+.app { max-width: 440px; margin: 0 auto; min-height: 100dvh; position: relative; background: var(--bg);
+  display: flex; flex-direction: column; box-shadow: var(--shadow-lg); }
+.app-scroll { flex: 1; overflow-y: auto; }
+.app-scroll::-webkit-scrollbar { display: none; }
+
+/* Таб-бар с центральной ✦ кнопкой */
+.tabbar { position: sticky; bottom: 0; z-index: 20; display: flex; align-items: center; gap: 2px;
+  padding: 8px 8px calc(12px + env(safe-area-inset-bottom));
+  background: color-mix(in srgb, var(--bg) 86%, transparent);
+  backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-top: 1px solid var(--hairline); }
+.tab { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; background: none; border: none;
+  color: var(--text2); font-family: inherit; font-size: 10.5px; font-weight: 600; padding: 5px 0; cursor: pointer; transition: color .2s; }
+.tab .ti { font-size: 21px; line-height: 1; transition: transform .25s cubic-bezier(.34,1.56,.64,1); }
+.tab.active { color: var(--accent); }
+.tab.active .ti { transform: translateY(-2px) scale(1.08); }
+.ai-fab { flex: none; width: 56px; height: 56px; margin: -28px 6px 0; border-radius: 50%; border: none; cursor: pointer;
+  background: linear-gradient(150deg, var(--accent), var(--accent-deep)); color: #fff; font-size: 22px; font-family: inherit;
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--accent) 42%, transparent), 0 0 0 5px var(--bg);
+  display: flex; align-items: center; justify-content: center; transition: transform .2s cubic-bezier(.34,1.56,.64,1); }
+.ai-fab:active { transform: scale(.92); }
+
+/* ИИ-шит */
+.ai-scrim { position: fixed; inset: 0; z-index: 60; background: rgba(20,16,12,.45); display: flex; align-items: flex-end;
+  justify-content: center; animation: fade .2s ease; }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+.ai-sheet { width: 100%; max-width: 440px; background: var(--bg); border-radius: 24px 24px 0 0; padding: 8px 22px calc(28px + env(safe-area-inset-bottom));
+  text-align: center; animation: up .3s cubic-bezier(.22,.9,.3,1) both; }
+@keyframes up { from { transform: translateY(100%); } to { transform: none; } }
+.grab { width: 40px; height: 5px; border-radius: 99px; background: var(--hairline); margin: 4px auto 16px; }
+.ai-hero { font-size: 46px; }
+.ai-title { font-size: 20px; font-weight: 780; margin-top: 6px; }
+.ai-sub { font-size: 14px; color: var(--text2); line-height: 1.55; margin: 10px 0 18px; }
+
+/* Тост */
+.toast-wrap { position: fixed; left: 0; right: 0; bottom: 96px; z-index: 95; display: flex; justify-content: center; pointer-events: none; }
+.toast { display: flex; align-items: center; gap: 11px; background: var(--frame); color: #fff; border-radius: 16px; padding: 12px 16px; box-shadow: var(--shadow-lg); max-width: 340px; }
+.toast-e { font-size: 20px; }
+.toast-t { font-size: 14px; font-weight: 700; }
+.toast-s { font-size: 12px; opacity: .8; margin-top: 1px; }
