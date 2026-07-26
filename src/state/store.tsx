@@ -2,21 +2,29 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 import type { PersistedV2, Profile } from '../types';
 
 const KEY = 'bubka-app-v1';
+const DAY = 'bubka-app-day';
+
+export interface DayLog { date: string; feed: number; diaper: number; water: number; sleepMin: number; sleepStart?: number }
 
 interface Store {
   profile: Profile | null;
-  ageMonths: number | null;       // скорректированный (для недоношенных)
+  ageMonths: number | null;
   ageMonthsReal: number | null;
   ageWeeks: number | null;
   setProfile: (p: Profile) => void;
   resetAll: () => void;
   toast: { icon: string; title: string; sub?: string } | null;
   showToast: (icon: string, title: string, sub?: string) => void;
+  day: DayLog;
+  bump: (k: 'feed' | 'diaper') => void;
+  addWater: (ml: number) => void;
+  toggleSleep: () => void;
 }
 
 const Ctx = createContext<Store | null>(null);
+const today = () => new Date().toDateString();
 
-function load(): Profile | null {
+function loadProfile(): Profile | null {
   try {
     const raw = localStorage.getItem(KEY);
     if (raw) return (JSON.parse(raw) as PersistedV2).profile;
@@ -27,6 +35,14 @@ function load(): Profile | null {
   } catch { /* ignore */ }
   return null;
 }
+function loadDay(): DayLog {
+  try {
+    const d = JSON.parse(localStorage.getItem(DAY) || 'null') as DayLog | null;
+    if (d && d.date === today()) return d;
+  } catch { /* ignore */ }
+  const demo = new URLSearchParams(location.search).has('demo');
+  return { date: today(), feed: demo ? 3 : 0, diaper: demo ? 4 : 0, water: demo ? 90 : 0, sleepMin: demo ? 160 : 0 };
+}
 
 export function monthsBetween(birthDate: string): number {
   const bd = new Date(birthDate), now = new Date();
@@ -34,22 +50,21 @@ export function monthsBetween(birthDate: string): number {
   if (now.getDate() < bd.getDate()) m--;
   return Math.max(0, m);
 }
-function weeksBetween(birthDate: string): number {
-  return Math.max(0, Math.floor((Date.now() - new Date(birthDate).getTime()) / (7 * 864e5)));
-}
+const weeksBetween = (b: string) => Math.max(0, Math.floor((Date.now() - new Date(b).getTime()) / (7 * 864e5)));
 
 export function StoreProvider({ children }: { children: ReactNode }) {
-  const [profile, setProfileState] = useState<Profile | null>(load);
+  const [profile, setProfileState] = useState<Profile | null>(loadProfile);
+  const [day, setDay] = useState<DayLog>(loadDay);
   const [toast, setToast] = useState<Store['toast']>(null);
 
   useEffect(() => {
-    const data: PersistedV2 = { v: 2, profile };
     try {
-      localStorage.setItem(KEY, JSON.stringify(data));
+      localStorage.setItem(KEY, JSON.stringify({ v: 2, profile } as PersistedV2));
       localStorage.setItem('bubka-app-mtime', String(Date.now()));
       window.dispatchEvent(new Event('bubka-saved'));
     } catch { /* quota */ }
   }, [profile]);
+  useEffect(() => { try { localStorage.setItem(DAY, JSON.stringify(day)); } catch { /* quota */ } }, [day]);
 
   const setProfile = useCallback((p: Profile) => setProfileState(p), []);
   const resetAll = useCallback(() => { localStorage.removeItem(KEY); setProfileState(null); }, []);
@@ -59,6 +74,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     (showToast as unknown as { t?: number }).t = window.setTimeout(() => setToast(null), 2600);
   }, []);
 
+  const bump = useCallback((k: 'feed' | 'diaper') => setDay((d) => ({ ...d, [k]: d[k] + 1 })), []);
+  const addWater = useCallback((ml: number) => setDay((d) => ({ ...d, water: d.water + ml })), []);
+  const toggleSleep = useCallback(() => setDay((d) => {
+    if (d.sleepStart) {
+      const mins = Math.round((Date.now() - d.sleepStart) / 60000);
+      return { ...d, sleepMin: d.sleepMin + mins, sleepStart: undefined };
+    }
+    return { ...d, sleepStart: Date.now() };
+  }), []);
+
   const ageMonthsReal = profile ? monthsBetween(profile.birthDate) : null;
   const ageMonths = ageMonthsReal != null && profile
     ? Math.max(0, ageMonthsReal - ((profile.earlyWeeks ?? 0) >= 4 ? Math.round((profile.earlyWeeks ?? 0) / 4.345) : 0))
@@ -66,7 +91,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const ageWeeks = profile ? weeksBetween(profile.birthDate) : null;
 
   return (
-    <Ctx.Provider value={{ profile, ageMonths, ageMonthsReal, ageWeeks, setProfile, resetAll, toast, showToast }}>
+    <Ctx.Provider value={{ profile, ageMonths, ageMonthsReal, ageWeeks, setProfile, resetAll, toast, showToast, day, bump, addWater, toggleSleep }}>
       {children}
     </Ctx.Provider>
   );
