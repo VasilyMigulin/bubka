@@ -116,3 +116,16 @@
 .mom-card-s { font-size: 12.5px; color: var(--text2); line-height: 1.45; margin-top: 2px; }
 .mom-card-arrow { color: var(--text2); font-size: 20px; flex: none; }
 @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+
+/* Трекер сна: рекомендация фазы, действия, подсказка */
+.sleep-rec { font-size: 13px; color: var(--text); background: color-mix(in srgb, var(--dusk) 12%, transparent); border-radius: 12px;
+  padding: 10px 13px; margin-top: 13px; line-height: 1.45; font-weight: 600; }
+.hero-now.sleeping .sleep-rec { background: rgba(237,238,246,.12); color: #DDE0EE; }
+.sleep-actions { display: flex; gap: 8px; margin-top: 12px; }
+.sleep-actions .btn { margin-top: 0; flex: 1; }
+.sleep-more { flex: none; border: none; font-family: inherit; cursor: pointer; background: color-mix(in srgb, var(--card) 62%, transparent);
+  color: var(--dusk); font-size: 12.5px; font-weight: 700; border-radius: 12px; padding: 0 15px; transition: transform .15s; }
+.sleep-more:active { transform: scale(.96); }
+.hero-now.sleeping .sleep-more { background: rgba(237,238,246,.14); color: #C9CDE0; }
+.sleep-hint { font-size: 11.5px; color: var(--text2); margin-top: 10px; line-height: 1.45; }
+.hero-now.sleeping .sleep-hint { color: #A9AEC6; }

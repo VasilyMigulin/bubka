@@ -1,0 +1,32 @@
+.dr-scrim { position: fixed; inset: 0; z-index: 70; background: rgba(20,16,12,.42); animation: drFade .22s ease; display: flex; justify-content: flex-end; }
+@keyframes drFade { from { opacity: 0; } to { opacity: 1; } }
+.dr-panel { width: 84%; max-width: 340px; height: 100%; background: var(--bg); overflow-y: auto;
+  padding: calc(20px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom));
+  box-shadow: -14px 0 40px rgba(20,16,12,.22); animation: drSlide .3s cubic-bezier(.22,.9,.3,1) both; }
+.dr-panel::-webkit-scrollbar { display: none; }
+@keyframes drSlide { from { transform: translateX(100%); } to { transform: none; } }
+
+.dr-kid { display: flex; align-items: center; gap: 12px; padding: 6px 6px 16px; border-bottom: 1px solid var(--hairline); margin-bottom: 8px; }
+.dr-ava { width: 46px; height: 46px; border-radius: 50%; background: var(--sand-soft); border: 2px solid var(--sand);
+  display: flex; align-items: center; justify-content: center; font-size: 22px; overflow: hidden; flex: none; }
+.dr-ava img { width: 100%; height: 100%; object-fit: cover; }
+.dr-kid b { font-size: 16px; font-weight: 750; display: block; }
+.dr-kid span { font-size: 12.5px; color: var(--text2); }
+
+.dr-group { margin-bottom: 6px; }
+.dr-sec { font-size: 10.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--text2); margin: 14px 8px 6px; }
+.dr-item { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; border: none; font-family: inherit; cursor: pointer;
+  background: none; border-radius: 14px; padding: 11px 10px; transition: background .15s, transform .12s; }
+.dr-item:active { transform: scale(.98); background: var(--elev); }
+.dr-e { font-size: 20px; flex: none; width: 26px; text-align: center; }
+.dr-item b { font-size: 14.5px; font-weight: 650; display: block; }
+.dr-sub { font-size: 11.5px; color: var(--text2); display: block; margin-top: 1px; }
+.dr-chev { color: var(--text2); font-size: 17px; flex: none; }
+.dr-item.danger { background: color-mix(in srgb, var(--danger) 9%, transparent); }
+.dr-item.danger b { color: var(--danger); }
+.dr-item.sparkle b { color: var(--accent); }
+
+/* Бургер-кнопка в шапке */
+.burger { flex: none; width: 40px; height: 40px; border-radius: 12px; border: none; background: var(--card); box-shadow: var(--shadow);
+  font-size: 17px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform .15s; }
+.burger:active { transform: scale(.9); }

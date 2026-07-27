@@ -2,10 +2,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { useStore } from '../state/store';
 import { helloNow } from '../lib/day';
 import { AvatarRing } from '../components/AvatarRing';
+import { Drawer } from '../components/Drawer';
 import { digestFor } from '../data/digest';
 import { mainToday } from '../data/main';
-import { SleepPage } from './SleepPage';
+import { Knowledge } from './Knowledge';
 import { MomPage } from './MomPage';
+import type { Sphere } from '../data/knowledge';
 import type { Domain } from '../types';
 import './Today.css';
 
@@ -21,17 +23,25 @@ const TINT_COLOR: Record<Domain, string> = {
 const hhmm = (ms: number) => { const m = Math.floor(ms / 60000); return `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}`; };
 const mss = (ms: number) => { const s = Math.floor(ms / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
 const fmtMin = (min: number) => { const h = Math.floor(min / 60), m = min % 60; return h ? `${h}:${String(m).padStart(2, '0')}` : `${m}м`; };
+const clock = (ts: number) => new Date(ts).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
 
 function wakeWindow(ageM: number): number {
   if (ageM < 1) return 50; if (ageM < 3) return 75; if (ageM < 5) return 105;
   if (ageM < 8) return 150; if (ageM < 12) return 195; return 255;
 }
+function phaseOf(r: number): { e: string; label: string; rec: string } {
+  if (r < 0.5) return { e: '🤸', label: 'Активное бодрствование', rec: 'Самое время для активных игр и движения' };
+  if (r < 0.78) return { e: '🧸', label: 'Спокойная часть', rec: 'Снижайте активность: тихие игры, книжки, приглушённый свет' };
+  if (r < 1) return { e: '🛁', label: 'Пора к ритуалу', rec: 'Притушите свет, спокойные объятия, колыбельная' };
+  return { e: '😴', label: 'Пора укладывать', rec: 'Ловите признаки усталости: зевки, потирание глаз' };
+}
 
 export function Today({ goTab }: { goTab: (t: string) => void }) {
   const { profile, ageMonths, ageMonthsReal, ageWeeks, day, bump, addWater, toggleSleep, showToast } = useStore();
   const [, tick] = useState(0);
-  const [sleepOpen, setSleepOpen] = useState(false);
-  const [momOpen, setMomOpen] = useState(false);
+  const [drawer, setDrawer] = useState(false);
+  const [kb, setKb] = useState<Sphere | 'all' | null>(null);
+  const [mom, setMom] = useState(false);
   const sleeping = !!day.sleepStart;
   const youngSleep = (ageMonths ?? 0) <= 15;
 
@@ -44,7 +54,6 @@ export function Today({ goTab }: { goTab: (t: string) => void }) {
   const week = ageWeeks ?? 0;
   const cards = useMemo(() => digestFor(ageMonths ?? 0, Math.floor(week)), [ageMonths, week]);
 
-  // прогресс возраста внутри месяца
   const ageBar = useMemo(() => {
     if (!profile || ageMonthsReal == null) return { frac: 0, days: 0 };
     const bd = new Date(profile.birthDate);
@@ -58,12 +67,14 @@ export function Today({ goTab }: { goTab: (t: string) => void }) {
   if (!profile) return null;
 
   const sleepShown = day.sleepMin + (day.sleepStart ? Math.round((Date.now() - day.sleepStart) / 60000) : 0);
-  const awakeMs = Date.now() - day.awakeSince;
   const win = wakeWindow(ageMonths ?? 6);
-  const toWindowMin = Math.round(win - awakeMs / 60000);
+  const awakeMs = Date.now() - day.awakeSince;
+  const r = awakeMs / (win * 60000);
+  const nextSleepAt = day.awakeSince + win * 60000;
+  const phase = phaseOf(r);
   const sleepMs = sleeping ? Date.now() - day.sleepStart! : 0;
-  const overdue = !sleeping && youngSleep && toWindowMin <= 0;
-  const frac = sleeping ? Math.min(1, sleepMs / (90 * 60000)) : Math.min(1, awakeMs / (win * 60000));
+  const overdue = !sleeping && youngSleep && r >= 1;
+  const frac = sleeping ? Math.min(1, sleepMs / (90 * 60000)) : Math.min(1, r);
   const R = 34, C = 2 * Math.PI * R;
 
   const daySeed = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 864e5);
@@ -72,8 +83,8 @@ export function Today({ goTab }: { goTab: (t: string) => void }) {
   const go = (d: Domain) => {
     if (d === 'feeding') goTab('feeding');
     else if (d === 'development' || d === 'leap' || d === 'behavior') goTab('dev');
-    else if (d === 'sleep') setSleepOpen(true);
-    else if (d === 'mom') setMomOpen(true);
+    else if (d === 'sleep') setKb('sleep');
+    else if (d === 'mom') setMom(true);
   };
   const doMain = () => { if (main.domain === 'sleep' && overdue) toggleSleep(); else go(main.domain); };
 
@@ -87,6 +98,7 @@ export function Today({ goTab }: { goTab: (t: string) => void }) {
           <div className="agebar"><i style={{ right: `${100 - ageBar.frac * 100}%` }} /></div>
           <div className="agebar-lbl"><span>{ageMonthsReal} мес</span><span>до {(ageMonthsReal ?? 0) + 1} мес — {ageBar.days} дн</span></div>
         </div>
+        <button className="burger" onClick={() => setDrawer(true)} aria-label="Меню">☰</button>
       </div>
 
       {/* ✨ Одно главное на сегодня */}
@@ -98,37 +110,40 @@ export function Today({ goTab }: { goTab: (t: string) => void }) {
         <div className="mc-cta">{main.cta} →</div>
       </button>
 
-      {/* Трекер сна (ведёт в раздел сна) */}
+      {/* Трекер сна с предсказанием и фазой */}
       {youngSleep && (
         <div className={`hero-now rise ${sleeping ? 'sleeping' : ''}`}>
-          <button className="hn-open" onClick={() => setSleepOpen(true)}>
-            <div className="top">
-              <div className="grow">
-                <div className="state">{sleeping ? 'Малыш спит' : 'Бодрствует'}</div>
-                <div className="big-time">{sleeping ? mss(sleepMs) : hhmm(awakeMs)}</div>
-                <div className="until">{sleeping
-                  ? <>Таймер идёт · за день <b>{fmtMin(sleepShown)}</b></>
-                  : toWindowMin > 0
-                    ? <>Окно сна через <b>~{toWindowMin} мин</b> · нажмите — про сон ›</>
-                    : <><b>Пора укладывать</b> · нажмите — про сон ›</>}</div>
-              </div>
-              <svg className="arc" viewBox="0 0 96 96">
-                <circle className="arc-track" cx="48" cy="48" r={R} />
-                <circle className="arc-prog" cx="48" cy="48" r={R} strokeDasharray={C} strokeDashoffset={C * (1 - frac)} transform="rotate(-90 48 48)" />
-                <text x="48" y="60" textAnchor="middle" className="arc-moon">{sleeping ? '🌙' : '🧸'}</text>
-              </svg>
+          <div className="top">
+            <div className="grow">
+              <div className="state">{sleeping ? 'Малыш спит' : phase.label}</div>
+              <div className="big-time">{sleeping ? mss(sleepMs) : hhmm(awakeMs)}</div>
+              <div className="until">{sleeping
+                ? <>Таймер идёт · за день сна <b>{fmtMin(sleepShown)}</b></>
+                : overdue
+                  ? <><b>Окно бодрствования прошло</b> — ловите признаки усталости</>
+                  : <>Следующий сон примерно в <b>{clock(nextSleepAt)}</b></>}</div>
             </div>
-          </button>
-          <button className="btn btn-dusk" onClick={toggleSleep}>{sleeping ? 'Проснулся' : 'Начать сон'}</button>
+            <svg className="arc" viewBox="0 0 96 96">
+              <circle className="arc-track" cx="48" cy="48" r={R} />
+              <circle className="arc-prog" cx="48" cy="48" r={R} strokeDasharray={C} strokeDashoffset={C * (1 - frac)} transform="rotate(-90 48 48)" />
+              <text x="48" y="60" textAnchor="middle" className="arc-moon">{sleeping ? '🌙' : phase.e}</text>
+            </svg>
+          </div>
+          {!sleeping && <div className="sleep-rec">{phase.rec}</div>}
+          <div className="sleep-actions">
+            <button className="btn btn-dusk" onClick={toggleSleep}>{sleeping ? 'Проснулся' : 'Начать сон'}</button>
+            <button className="sleep-more" onClick={() => setKb('sleep')}>📖 Всё про сон</button>
+          </div>
+          {!sleeping && <div className="sleep-hint">Ориентируйтесь на признаки малыша — время лишь подсказка.</div>}
         </div>
       )}
 
       {/* Как вы, мама? */}
-      <button className="mom-card rise" onClick={() => setMomOpen(true)}>
+      <button className="mom-card rise" onClick={() => setMom(true)}>
         <span className="mom-card-e">🤍</span>
         <div className="grow">
           <div className="mom-card-t">Как вы сегодня, мама?</div>
-          <div className="mom-card-s">Одна минута для себя — отметить настроение, выдохнуть, получить поддержку</div>
+          <div className="mom-card-s">Минутка для себя — настроение, поддержка и кое-что новое каждый день</div>
         </div>
         <span className="mom-card-arrow">›</span>
       </button>
@@ -136,7 +151,7 @@ export function Today({ goTab }: { goTab: (t: string) => void }) {
       {/* День в цифрах */}
       <div className="sec-head rise"><b>День в цифрах</b><span onClick={() => goTab('baby')}>журнал ›</span></div>
       <div className="glance rise">
-        <button onClick={() => setSleepOpen(true)}><div className="ge">😴</div><div className="gv">{fmtMin(sleepShown)}</div><div className="gl">сон</div></button>
+        <button onClick={() => setKb('sleep')}><div className="ge">😴</div><div className="gv">{fmtMin(sleepShown)}</div><div className="gl">сон</div></button>
         <button onClick={() => goTab('baby')}><div className="ge">🥣</div><div className="gv">{day.feed}</div><div className="gl">еда</div></button>
         <button onClick={() => goTab('baby')}><div className="ge">💧</div><div className="gv">{day.water}</div><div className="gl">мл воды</div></button>
         <button onClick={() => goTab('baby')}><div className="ge">🩲</div><div className="gv">{day.diaper}</div><div className="gl">подгуз.</div></button>
@@ -164,8 +179,11 @@ export function Today({ goTab }: { goTab: (t: string) => void }) {
 
       <div className="td-trust rise">Собрано по современным рекомендациям ВОЗ, AAP, NHS и данным исследований.</div>
 
-      {sleepOpen && <SleepPage onClose={() => setSleepOpen(false)} />}
-      {momOpen && <MomPage onClose={() => setMomOpen(false)} />}
+      <Drawer open={drawer} onClose={() => setDrawer(false)}
+        onKnowledge={() => setKb('all')} onMom={() => setMom(true)}
+        onSOS={() => showToast('🚨', 'Экстренная помощь', 'Скоро — инструкции при подавился/аллергия')} />
+      {kb && <Knowledge initial={kb === 'all' ? undefined : kb} onClose={() => setKb(null)} />}
+      {mom && <MomPage onClose={() => setMom(false)} onKnowledge={() => setKb('mom')} />}
     </div>
   );
 }
