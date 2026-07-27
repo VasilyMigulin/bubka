@@ -5,6 +5,7 @@ import { AvatarRing } from '../components/AvatarRing';
 import { Drawer } from '../components/Drawer';
 import { digestFor } from '../data/digest';
 import { mainToday } from '../data/main';
+import { soonFor } from '../data/soon';
 import { Knowledge } from './Knowledge';
 import { MomPage } from './MomPage';
 import type { Sphere } from '../data/knowledge';
@@ -162,6 +163,26 @@ export function Today({ goTab }: { goTab: (t: string) => void }) {
         <button onClick={() => { bump('diaper'); showToast('🩲', 'Подгузник', 'Записано'); }}><span className="qe">🩲</span>Подгузник</button>
         <button onClick={() => { addWater(30); showToast('💧', 'Вода', `+30 мл · всего ${day.water + 30}`); }}><span className="qe">💧</span>Вода</button>
         <button onClick={() => showToast('📷', 'Фото', 'Скоро — добавим в дневник')}><span className="qe">📷</span>Фото</button>
+      </div>
+
+      {/* Что скоро */}
+      <div className="sec-head rise"><b>Что скоро</b><span>взгляд вперёд</span></div>
+      <div className="soon rise">
+        {ageBar.days <= 25 && (
+          <div className="soon-row">
+            <span className="soon-when">через {ageBar.days} дн</span>
+            <span className="soon-e">🎂</span>
+            <span className="grow">{profile.name} исполнится {(ageMonthsReal ?? 0) + 1} {(ageMonthsReal ?? 0) + 1 === 1 ? 'месяц' : (ageMonthsReal ?? 0) + 1 < 5 ? 'месяца' : 'месяцев'}</span>
+          </div>
+        )}
+        {soonFor(ageMonths ?? 6).map((s, i) => (
+          <button key={i} className="soon-row" onClick={() => s.sphere && setKb(s.sphere as Sphere)} disabled={!s.sphere}>
+            <span className="soon-when">{s.when}</span>
+            <span className="soon-e">{s.e}</span>
+            <span className="grow">{s.text}</span>
+            {s.sphere && <span className="soon-arrow">›</span>}
+          </button>
+        ))}
       </div>
 
       {/* Лента */}
