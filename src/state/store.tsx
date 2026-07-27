@@ -4,7 +4,7 @@ import type { PersistedV2, Profile } from '../types';
 const KEY = 'bubka-app-v1';
 const DAY = 'bubka-app-day';
 
-export interface DayLog { date: string; feed: number; diaper: number; water: number; sleepMin: number; sleepStart?: number }
+export interface DayLog { date: string; feed: number; diaper: number; water: number; sleepMin: number; sleepStart?: number; awakeSince: number }
 
 interface Store {
   profile: Profile | null;
@@ -38,10 +38,11 @@ function loadProfile(): Profile | null {
 function loadDay(): DayLog {
   try {
     const d = JSON.parse(localStorage.getItem(DAY) || 'null') as DayLog | null;
-    if (d && d.date === today()) return d;
+    if (d && d.date === today()) return { ...d, awakeSince: d.awakeSince ?? Date.now() };
   } catch { /* ignore */ }
   const demo = new URLSearchParams(location.search).has('demo');
-  return { date: today(), feed: demo ? 3 : 0, diaper: demo ? 4 : 0, water: demo ? 90 : 0, sleepMin: demo ? 160 : 0 };
+  return { date: today(), feed: demo ? 3 : 0, diaper: demo ? 4 : 0, water: demo ? 90 : 0, sleepMin: demo ? 160 : 0,
+    awakeSince: demo ? Date.now() - 55 * 60000 : Date.now() };
 }
 
 export function monthsBetween(birthDate: string): number {
@@ -78,8 +79,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const addWater = useCallback((ml: number) => setDay((d) => ({ ...d, water: d.water + ml })), []);
   const toggleSleep = useCallback(() => setDay((d) => {
     if (d.sleepStart) {
-      const mins = Math.round((Date.now() - d.sleepStart) / 60000);
-      return { ...d, sleepMin: d.sleepMin + mins, sleepStart: undefined };
+      const mins = Math.max(1, Math.round((Date.now() - d.sleepStart) / 60000));
+      return { ...d, sleepMin: d.sleepMin + mins, sleepStart: undefined, awakeSince: Date.now() };
     }
     return { ...d, sleepStart: Date.now() };
   }), []);

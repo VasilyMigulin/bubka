@@ -1,8 +1,9 @@
 .today { padding: 8px 18px calc(96px + env(safe-area-inset-bottom)); }
 
 .greet { display: flex; align-items: center; gap: 14px; padding: 10px 2px 14px; }
-.greet h2 { font-size: 21px; font-weight: 750; letter-spacing: -.02em; }
-.greet .age { font-size: 13.5px; color: var(--text2); margin-top: 2px; }
+.greet-hello { font-size: 12.5px; font-weight: 700; color: var(--text2); }
+.greet-name { font-size: 26px; font-weight: 800; letter-spacing: -.02em; line-height: 1.1; }
+.greet .age { font-size: 12.5px; color: var(--text2); margin-top: 2px; }
 .wk-chip { flex: none; font-size: 11px; font-weight: 700; color: var(--accent); background: var(--accent-soft); border-radius: 999px; padding: 6px 11px; }
 
 /* Hero «сейчас» */
@@ -66,3 +67,18 @@
 .tint-sand { background: var(--sand-soft); }
 
 .td-trust { text-align: center; font-size: 10.5px; line-height: 1.55; color: var(--text2); opacity: .8; margin: 18px 8px 4px; }
+
+
+/* Дуга-индикатор сна */
+.arc { width: 92px; height: 92px; flex: none; margin-left: auto; }
+.arc circle { fill: none; stroke-width: 7; stroke-linecap: round; }
+.arc-track { stroke: color-mix(in srgb, var(--dusk) 18%, transparent); }
+.arc-prog { stroke: var(--dusk); transition: stroke-dashoffset .6s ease; }
+.hero-now.sleeping .arc-track { stroke: rgba(237,238,246,.18); }
+.hero-now.sleeping .arc-prog { stroke: #B9BDD4; }
+.arc-moon { font-size: 30px; }
+.sleep-ai { display: block; width: 100%; margin-top: 8px; border: none; font-family: inherit; cursor: pointer;
+  background: color-mix(in srgb, var(--card) 60%, transparent); color: var(--dusk); font-size: 13px; font-weight: 650;
+  border-radius: 12px; padding: 11px; transition: transform .15s; }
+.sleep-ai:active { transform: scale(.98); }
+.hero-now.sleeping .sleep-ai { background: rgba(237,238,246,.12); color: #C9CDE0; }
