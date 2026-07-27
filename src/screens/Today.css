@@ -82,3 +82,37 @@
   border-radius: 12px; padding: 11px; transition: transform .15s; }
 .sleep-ai:active { transform: scale(.98); }
 .hero-now.sleeping .sleep-ai { background: rgba(237,238,246,.12); color: #C9CDE0; }
+
+/* Прогресс-линия возраста */
+.agebar { height: 5px; border-radius: 99px; background: var(--elev); margin: 9px 0 4px; position: relative; overflow: hidden; }
+.agebar i { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 70%, var(--terra))); border-radius: 99px; transition: right .6s ease; }
+.agebar-lbl { display: flex; justify-content: space-between; font-size: 10.5px; font-weight: 700; color: var(--text2); }
+
+/* ✨ Одно главное на сегодня */
+.main-card { position: relative; display: block; width: 100%; text-align: left; border: none; font-family: inherit; cursor: pointer;
+  background: var(--card); border-radius: 24px; padding: 20px; box-shadow: var(--shadow-lg); margin: 14px 0; overflow: hidden;
+  transition: transform .18s cubic-bezier(.34,1.56,.64,1); }
+.main-card:active { transform: scale(.98); }
+.mc-glow { position: absolute; width: 220px; height: 220px; right: -60px; top: -80px; opacity: .16; pointer-events: none; }
+.main-card.urgent { background: linear-gradient(155deg, color-mix(in srgb, var(--warn) 16%, var(--card)), var(--card) 70%); }
+.mc-kick { font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); position: relative; }
+.main-card.urgent .mc-kick { color: var(--warn); }
+.mc-e { font-size: 46px; line-height: 1; margin: 10px 0 8px; position: relative; animation: mcPop .5s cubic-bezier(.34,1.56,.64,1) both; }
+@keyframes mcPop { from { transform: scale(.4) rotate(-12deg); opacity: 0; } to { transform: none; opacity: 1; } }
+.mc-title { font-size: 20px; font-weight: 800; letter-spacing: -.02em; line-height: 1.24; position: relative; }
+.mc-cta { font-size: 14px; font-weight: 780; color: var(--accent); margin-top: 14px; position: relative; }
+.main-card.urgent .mc-cta { color: var(--warn); }
+
+/* Трекер сна — обёртка-кнопка */
+.hn-open { display: block; width: 100%; text-align: left; border: none; background: none; font-family: inherit; cursor: pointer; padding: 0; color: inherit; }
+
+/* Блок мамы */
+.mom-card { display: flex; align-items: center; gap: 13px; width: 100%; text-align: left; border: none; font-family: inherit; cursor: pointer;
+  background: linear-gradient(150deg, var(--accent-soft), var(--card) 74%); border: 1.5px solid color-mix(in srgb, var(--accent) 20%, transparent);
+  border-radius: 20px; padding: 15px 16px; box-shadow: var(--shadow); margin-bottom: 16px; transition: transform .15s; }
+.mom-card:active { transform: scale(.98); }
+.mom-card-e { font-size: 30px; flex: none; animation: floaty 6s ease-in-out infinite; }
+.mom-card-t { font-size: 15.5px; font-weight: 750; }
+.mom-card-s { font-size: 12.5px; color: var(--text2); line-height: 1.45; margin-top: 2px; }
+.mom-card-arrow { color: var(--text2); font-size: 20px; flex: none; }
+@keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }

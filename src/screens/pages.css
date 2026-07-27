@@ -1,0 +1,73 @@
+/* Полноэкранные страницы разделов — общий каркас */
+.page { position: fixed; inset: 0; z-index: 60; max-width: 440px; margin: 0 auto; background: var(--bg);
+  display: flex; flex-direction: column; overflow-y: auto; animation: pageIn .34s cubic-bezier(.3,.7,.3,1) both; }
+.page::-webkit-scrollbar { display: none; }
+@keyframes pageIn { from { transform: translateX(100%); } to { transform: none; } }
+
+.pg-back { position: absolute; top: 14px; left: 14px; z-index: 5; width: 38px; height: 38px; border-radius: 50%;
+  background: color-mix(in srgb, var(--card) 90%, transparent); backdrop-filter: blur(8px); border: none; color: var(--text);
+  font-size: 20px; box-shadow: var(--shadow); cursor: pointer; transition: transform .15s; }
+.pg-back:active { transform: scale(.9); }
+
+/* Hero страницы — с большим «блобом»-иллюстрацией */
+.pg-hero { position: relative; padding: 72px 22px 26px; overflow: hidden; }
+.pg-hero-dusk { background: linear-gradient(160deg, var(--dusk-soft), var(--bg) 82%); }
+.pg-hero-accent { background: linear-gradient(160deg, var(--accent-soft), var(--bg) 82%); }
+.pg-blob { position: absolute; right: 18px; top: 46px; font-size: 92px; line-height: 1; opacity: .9;
+  filter: drop-shadow(0 12px 24px rgba(80,60,40,.18)); animation: floaty 6s ease-in-out infinite; }
+@keyframes floaty { 0%,100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-10px) rotate(3deg); } }
+.pg-eyebrow { font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--dusk); }
+.pg-hero-accent .pg-eyebrow { color: var(--accent); }
+.pg-hero h1 { font-size: 27px; font-weight: 800; letter-spacing: -.02em; margin-top: 6px; max-width: 74%; line-height: 1.15; }
+.pg-hero p { font-size: 14px; color: var(--text2); line-height: 1.55; margin-top: 10px; max-width: 88%; }
+
+.pg-body { padding: 8px 18px calc(40px + env(safe-area-inset-bottom)); }
+.pg-sec { font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--text2); margin: 22px 2px 12px; }
+.pg-note { font-size: 12.5px; color: var(--text2); line-height: 1.5; margin-top: 10px; }
+.pg-trust { font-size: 11px; color: var(--text2); line-height: 1.55; margin-top: 24px; padding-top: 14px; border-top: 1px solid var(--hairline); }
+
+.btn-dusk { background: var(--dusk); color: #fff; }
+.btn-accent { background: var(--accent); color: #fff; }
+.btn-accent:disabled { opacity: .55; }
+
+/* ── Сон ── */
+.sleep-live { display: flex; align-items: center; gap: 12px; background: var(--dusk-soft); border-radius: 20px; padding: 15px 16px; box-shadow: var(--shadow); }
+.sl-state { font-size: 15px; font-weight: 750; }
+.sl-sub { font-size: 12.5px; color: var(--text2); margin-top: 2px; }
+.norm-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; }
+.norm { background: var(--card); border-radius: 16px; box-shadow: var(--shadow); padding: 15px 8px; text-align: center; }
+.nv { font-size: 18px; font-weight: 800; color: var(--dusk); font-variant-numeric: tabular-nums; }
+.nl { font-size: 10.5px; color: var(--text2); line-height: 1.3; margin-top: 5px; }
+.kb-card { display: flex; gap: 12px; width: 100%; text-align: left; border: none; font-family: inherit; cursor: pointer;
+  background: var(--card); border-radius: 16px; padding: 15px; box-shadow: var(--shadow); margin-bottom: 9px; transition: transform .15s; }
+.kb-card:active { transform: scale(.99); }
+.kb-e { font-size: 24px; flex: none; }
+.kb-title { font-size: 14.5px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.kb-chev { margin-left: auto; color: var(--text2); font-size: 18px; font-weight: 400; }
+.kb-text { font-size: 13.5px; color: var(--text2); line-height: 1.55; margin-top: 8px; animation: rise .3s ease both; }
+
+/* ── Мама ── */
+.affirm { background: var(--accent-soft); border-radius: 18px; padding: 18px; font-size: 15.5px; font-weight: 600; line-height: 1.5;
+  color: var(--text); text-align: center; letter-spacing: -.01em; }
+.mood-pick { display: flex; gap: 7px; }
+.mood { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; border: 1.5px solid var(--hairline);
+  background: var(--card); border-radius: 16px; padding: 12px 2px; font-family: inherit; cursor: pointer; transition: all .18s cubic-bezier(.34,1.56,.64,1); }
+.mood-e { font-size: 26px; }
+.mood-l { font-size: 9.5px; font-weight: 700; color: var(--text2); }
+.mood.on { border-color: var(--accent); background: var(--accent-soft); transform: translateY(-2px) scale(1.04); }
+.mom-reply { background: var(--card); border-radius: 16px; padding: 15px 16px; box-shadow: var(--shadow); margin-top: 12px; }
+.mom-reply b { font-size: 15px; font-weight: 750; }
+.mom-reply p { font-size: 13.5px; color: var(--text2); line-height: 1.55; margin-top: 5px; }
+.mom-note { width: 100%; border: 1.5px solid var(--hairline); background: var(--card); border-radius: 14px; padding: 13px 14px;
+  font-family: inherit; font-size: 14.5px; color: var(--text); outline: none; resize: vertical; margin-bottom: 10px; transition: border-color .18s; }
+.mom-note:focus { border-color: var(--accent); }
+.mom-tip { display: flex; gap: 12px; background: var(--card); border-radius: 16px; padding: 14px 15px; box-shadow: var(--shadow); margin-bottom: 9px; }
+.mt-e { font-size: 22px; flex: none; }
+.mt-title { font-size: 14px; font-weight: 700; }
+.mt-text { font-size: 13px; color: var(--text2); line-height: 1.5; margin-top: 3px; }
+.mom-entry { display: flex; gap: 12px; align-items: flex-start; padding: 12px 2px; border-bottom: 1px solid var(--hairline); }
+.me-mood { font-size: 22px; }
+.me-date { font-size: 12px; font-weight: 700; color: var(--text2); }
+.me-note { font-size: 13.5px; line-height: 1.5; margin-top: 3px; }
+
+@media (prefers-reduced-motion: reduce) { .page, .pg-blob, .kb-text, .mom-reply { animation: none !important; } }
