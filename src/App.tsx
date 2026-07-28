@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { StoreProvider, useStore } from './state/store';
 import { Onboarding } from './screens/Onboarding';
 import { Today } from './screens/Today';
+import { AiSheet } from './screens/AiSheet';
+import { Knowledge } from './screens/Knowledge';
+import type { Sphere } from './data/knowledge';
 import './App.css';
 
 type Tab = 'today' | 'dev' | 'feeding' | 'baby';
@@ -38,6 +41,13 @@ function Shell() {
   const { profile } = useStore();
   const [tab, setTab] = useState<Tab>('today');
   const [aiOpen, setAiOpen] = useState(false);
+  const [aiKb, setAiKb] = useState<Sphere | null>(null);
+
+  useEffect(() => {
+    const h = () => setAiOpen(true);
+    window.addEventListener('bubka-open-ai', h);
+    return () => window.removeEventListener('bubka-open-ai', h);
+  }, []);
 
   if (!profile) return <Onboarding />;
 
@@ -64,17 +74,8 @@ function Shell() {
         ))}
       </nav>
 
-      {aiOpen && (
-        <div className="ai-scrim" onClick={() => setAiOpen(false)}>
-          <div className="ai-sheet" onClick={(e) => e.stopPropagation()}>
-            <div className="grab" />
-            <div className="ai-hero">✦</div>
-            <div className="ai-title">Помощник bubka</div>
-            <p className="ai-sub">Спросите что угодно про малыша — сон, еду, развитие. Помощник знает возраст и контекст. Скоро подключим.</p>
-            <button className="btn btn-primary" onClick={() => setAiOpen(false)}>Понятно</button>
-          </div>
-        </div>
-      )}
+      {aiOpen && <AiSheet onClose={() => setAiOpen(false)} onSphere={(s) => setAiKb(s)} />}
+      {aiKb && <Knowledge initial={aiKb} onClose={() => setAiKb(null)} />}
 
       <Toast />
     </div>

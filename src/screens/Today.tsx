@@ -81,6 +81,11 @@ export function Today({ goTab }: { goTab: (t: string) => void }) {
   const daySeed = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 864e5);
   const main = useMemo(() => mainToday(ageMonths ?? 6, daySeed, overdue), [ageMonths, daySeed, overdue]);
 
+  const hour = new Date().getHours();
+  const evening = hour >= 18 || hour < 5;
+  const MOMENTS = ['как ест сам', 'улыбку после сна', 'любимую игрушку в руках', 'как играет с вами', 'новое движение или навык', 'спящего малыша', 'первую пробу нового вкуса'];
+  const moment = MOMENTS[Math.floor(week) % MOMENTS.length];
+
   const go = (d: Domain) => {
     if (d === 'feeding') goTab('feeding');
     else if (d === 'development' || d === 'leap' || d === 'behavior') goTab('dev');
@@ -110,6 +115,20 @@ export function Today({ goTab }: { goTab: (t: string) => void }) {
         <div className="mc-title">{main.title}</div>
         <div className="mc-cta">{main.cta} →</div>
       </button>
+
+      {/* Вечерний режим — экран меняется по времени суток */}
+      {evening && (
+        <button className="evening-card rise" onClick={() => setMom(true)}>
+          <div className="ev-row">
+            <span className="ev-e">🌙</span>
+            <div className="grow">
+              <div className="ev-t">Как прошёл день?</div>
+              <div className="ev-s">Сегодня: сон {fmtMin(sleepShown)} · {day.feed} {day.feed === 1 ? 'кормление' : day.feed < 5 ? 'кормления' : 'кормлений'}. Уложить малыша и выдохнуть — день был не зря.</div>
+            </div>
+          </div>
+          <div className="ev-cta">Отметить настроение и отдохнуть →</div>
+        </button>
+      )}
 
       {/* Трекер сна с предсказанием и фазой */}
       {youngSleep && (
@@ -165,6 +184,17 @@ export function Today({ goTab }: { goTab: (t: string) => void }) {
         <button onClick={() => showToast('📷', 'Фото', 'Скоро — добавим в дневник')}><span className="qe">📷</span>Фото</button>
       </div>
 
+      {/* Быстрые действия — навигация по разделам */}
+      <div className="sec-head rise"><b>Разделы</b><span>всё под рукой</span></div>
+      <div className="tiles rise">
+        <button className="tile" onClick={() => goTab('feeding')}><span className="tl-e">🥑</span>Прикорм</button>
+        <button className="tile" onClick={() => setKb('sleep')}><span className="tl-e">😴</span>Сон</button>
+        <button className="tile" onClick={() => goTab('dev')}><span className="tl-e">🧩</span>Развитие</button>
+        <button className="tile" onClick={() => goTab('baby')}><span className="tl-e">📔</span>Дневник</button>
+        <button className="tile" onClick={() => window.dispatchEvent(new Event('bubka-open-ai'))}><span className="tl-e">✦</span>Спросить ИИ</button>
+        <button className="tile" onClick={() => goTab('baby')}><span className="tl-e">📊</span>Статистика</button>
+      </div>
+
       {/* Что скоро */}
       <div className="sec-head rise"><b>Что скоро</b><span>взгляд вперёд</span></div>
       <div className="soon rise">
@@ -196,7 +226,23 @@ export function Today({ goTab }: { goTab: (t: string) => void }) {
             <div className="cs">{c.text}</div>
           </button>
         ))}
+        <button className="c-card c-moment" onClick={() => showToast('📸', 'Момент недели', 'Скоро — сохраним в дневник малыша')}>
+          <div className="ce">📸</div>
+          <div className="ck2" style={{ color: 'var(--sand)' }}>Момент недели</div>
+          <div className="cn">Снимите {moment}</div>
+          <div className="cs">Такие кадры быстро забываются — сохраните этот на память</div>
+        </button>
       </div>
+
+      {/* ✦ ИИ — большая карточка внизу */}
+      <button className="ai-card rise" onClick={() => window.dispatchEvent(new Event('bubka-open-ai'))}>
+        <div className="ai-card-spark">✦</div>
+        <div className="grow">
+          <div className="ai-card-t">Что вас беспокоит сегодня?</div>
+          <div className="ai-card-s">Не ест · плохо спит · что приготовить — спросите, подскажу и покажу, что почитать</div>
+        </div>
+        <span className="ai-card-arrow">›</span>
+      </button>
 
       <div className="td-trust rise">Собрано по современным рекомендациям ВОЗ, AAP, NHS и данным исследований.</div>
 
