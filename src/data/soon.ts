@@ -1,20 +1,22 @@
 // «Что скоро» — взгляд вперёд. Мягкие формулировки: «может», «у многих», без жёстких дат.
 import type { Sphere } from './knowledge';
+import { masteredSkills } from './skills';
 
 export interface SoonItem {
   minM: number; maxM: number;
   when: string;      // мягкая рамка времени
   e: string; text: string;
   sphere?: Sphere;   // куда ведёт (если есть)
+  skill?: string;    // id навыка — можно отметить «уже умеет», и пункт скроется
 }
 
 export const SOON: SoonItem[] = [
   // развитие — «может начать»
-  { minM: 2, maxM: 4, when: 'В ближайшее время', e: '🤗', text: 'Скоро малыш может начать переворачиваться — освобождайте пространство вокруг', sphere: 'development' },
-  { minM: 5, maxM: 7, when: 'В ближайшее время', e: '🪑', text: 'Может начать сидеть без опоры и тянуться к предметам', sphere: 'development' },
-  { minM: 7, maxM: 9, when: 'В ближайшее время', e: '🐛', text: 'Может начать ползать и вставать у опоры — самое время обезопасить дом', sphere: 'safety' },
-  { minM: 10, maxM: 13, when: 'В ближайшее время', e: '🚶', text: 'Скоро возможны первые шаги — у каждого свой темп, торопить не нужно', sphere: 'development' },
-  { minM: 11, maxM: 16, when: 'В ближайшее время', e: '🗣', text: 'Могут появиться первые осознанные слова — говорите с малышом побольше', sphere: 'development' },
+  { minM: 2, maxM: 4, when: 'В ближайшее время', e: '🤗', text: 'Скоро малыш может начать переворачиваться — освобождайте пространство вокруг', sphere: 'development', skill: 'roll' },
+  { minM: 5, maxM: 7, when: 'В ближайшее время', e: '🪑', text: 'Может начать сидеть без опоры и тянуться к предметам', sphere: 'development', skill: 'sit' },
+  { minM: 7, maxM: 9, when: 'В ближайшее время', e: '🐛', text: 'Может начать ползать и вставать у опоры — самое время обезопасить дом', sphere: 'safety', skill: 'crawl' },
+  { minM: 10, maxM: 13, when: 'В ближайшее время', e: '🚶', text: 'Скоро возможны первые шаги — у каждого свой темп, торопить не нужно', sphere: 'development', skill: 'walk' },
+  { minM: 11, maxM: 16, when: 'В ближайшее время', e: '🗣', text: 'Могут появиться первые осознанные слова — говорите с малышом побольше', sphere: 'development', skill: 'words' },
 
   // питание — «можно будет»
   { minM: 5, maxM: 5, when: 'Совсем скоро', e: '🥄', text: 'Около 6 месяцев можно будет начать прикорм — по признакам готовности', sphere: 'feeding' },
@@ -32,5 +34,6 @@ export const SOON: SoonItem[] = [
 ];
 
 export function soonFor(ageM: number): SoonItem[] {
-  return SOON.filter((s) => ageM >= s.minM && ageM <= s.maxM).slice(0, 3);
+  const done = masteredSkills();
+  return SOON.filter((s) => ageM >= s.minM && ageM <= s.maxM && !(s.skill && done.has(s.skill))).slice(0, 4);
 }

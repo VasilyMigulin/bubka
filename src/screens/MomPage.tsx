@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useStore } from '../state/store';
 import { MOOD_REPLY, MOM_DAILY } from '../data/mom';
+import { Breathing } from '../components/Breathing';
 import './pages.css';
 
 const MOODS = [
@@ -20,6 +21,7 @@ export function MomPage({ onClose, onKnowledge }: { onClose: () => void; onKnowl
   const { showToast } = useStore();
   const [mood, setMood] = useState<number | null>(null);
   const [note, setNote] = useState('');
+  const [breath, setBreath] = useState(false);
   const [entries, setEntries] = useState<MomEntry[]>(() => {
     try { return JSON.parse(localStorage.getItem(MKEY) || '[]') as MomEntry[]; } catch { return []; }
   });
@@ -114,6 +116,14 @@ export function MomPage({ onClose, onKnowledge }: { onClose: () => void; onKnowl
           {mood == null ? 'Отметьте настроение ↑' : 'Сохранить в дневник'}
         </button>
 
+        <div className="pg-sec">Быстрая передышка</div>
+        <button className="breath-cta" onClick={() => setBreath(true)}>
+          <span className="breath-e">🫧</span>
+          <div className="grow"><b>Подышать 30 секунд</b><span>Дыхание 4-7-8 — снижает тревогу и напряжение прямо сейчас</span></div>
+          <span className="breath-arrow">›</span>
+        </button>
+        <div className="mom-affirm-close">Что бы ни было сегодня — вы уже многое делаете правильно 🤍</div>
+
         <div className="pg-sec">Поддержка</div>
         <button className="kb-link" onClick={() => { onClose(); onKnowledge(); }}>
           📖 <span>Больше про заботу о себе — в базе знаний</span><span className="kl-arrow">›</span>
@@ -136,6 +146,7 @@ export function MomPage({ onClose, onKnowledge }: { onClose: () => void; onKnowl
 
         <div className="pg-trust">Если тяжело почти каждый день дольше двух недель — обсудите это с врачом. Послеродовая депрессия лечится, и просить помощи — правильно.</div>
       </div>
+      {breath && <Breathing onClose={() => setBreath(false)} />}
     </div>,
     document.body,
   );

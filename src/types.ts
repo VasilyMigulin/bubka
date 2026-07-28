@@ -8,6 +8,7 @@ export interface Profile {
   approach: FeedingApproach;
   photo?: string;
   earlyWeeks?: number;      // недоношенность → скорректированный возраст
+  sleepMode?: 'crib' | 'cosleep'; // как укладывают: раздельно / совместный сон
 }
 
 /** Сфера дайджеста — из какой части жизни малыша карточка. */

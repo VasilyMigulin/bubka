@@ -72,13 +72,14 @@ function Shell() {
         <div className="fab-wrap">
           {hint && (
             <div className="fab-hint">
+              <button className="fab-hint-x" onClick={() => { setHint(false); localStorage.setItem('bubka-ai-hint-seen', '1'); }} aria-label="Скрыть">✕</button>
               <b>Спросите Бубку</b>
               <span>Ваш помощник всегда рядом 💛</span>
               <i />
             </div>
           )}
           <button className={`ai-fab ${aiOpen ? 'on' : ''}`} onClick={openAi} aria-label="Бубка — помощник">
-            <span className="fab-pulse" />✨
+            <span className="fab-pulse" />✦
           </button>
         </div>
         {TABS.slice(2).map((t) => (

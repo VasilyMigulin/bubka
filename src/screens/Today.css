@@ -267,3 +267,25 @@
 .s2-more:active { transform: scale(.96); }
 .sleep2.is-sleep .s2-btn { background: rgba(237,238,246,.9); color: #232634; }
 .s2-hint { font-size: 11.5px; color: var(--text2); margin-top: 10px; line-height: 1.45; }
+
+/* Ритуал перед сном — шаги */
+.s2-ritual { background: color-mix(in srgb, var(--card) 55%, transparent); border-radius: 14px; padding: 13px 15px; margin-top: 14px; }
+.s2-mode { margin: 4px 0 12px; }
+.s2-mode > span { font-size: 12.5px; font-weight: 650; color: var(--text2); }
+.s2-mode-btns { display: flex; gap: 8px; margin-top: 7px; }
+.s2-mode-btns button { flex: 1; border: 1.5px solid var(--hairline); background: var(--card); border-radius: 12px; padding: 10px 4px;
+  font-family: inherit; font-size: 12.5px; font-weight: 700; color: var(--text); cursor: pointer; transition: transform .15s; }
+.s2-mode-btns button:active { transform: scale(.96); }
+.s2-steps { list-style: none; counter-reset: r; padding: 0; margin: 2px 0 0; }
+.s2-steps li { counter-increment: r; display: flex; align-items: flex-start; gap: 9px; font-size: 13px; line-height: 1.5; padding: 8px 0;
+  border-bottom: 1px solid var(--hairline); }
+.s2-steps li:last-child { border-bottom: none; }
+.s2-steps li::before { content: counter(r); flex: none; width: 20px; height: 20px; border-radius: 50%; background: var(--dusk); color: #fff;
+  font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+.rst-e { flex: none; font-size: 16px; }
+
+/* «Уже умеет» в Что скоро */
+.tl-know { display: inline-block; margin-top: 6px; border: none; background: var(--accent-soft); color: var(--accent); border-radius: 999px;
+  padding: 5px 11px; font-family: inherit; font-size: 11px; font-weight: 750; cursor: pointer; transition: transform .15s; }
+.tl-know:active { transform: scale(.95); }
+.tl-item .tl-arrow { border: none; background: none; cursor: pointer; padding: 0 2px; }

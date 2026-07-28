@@ -139,3 +139,14 @@
 .ai-res span:not(.ai-res-e):not(.ai-res-arrow) { font-size: 12px; color: var(--text2); display: block; margin-top: 2px; }
 .ai-res-arrow { color: var(--text2); font-size: 17px; flex: none; }
 .ai-empty { font-size: 13px; color: var(--text2); line-height: 1.55; margin-top: 16px; background: var(--elev); border-radius: 14px; padding: 14px; }
+
+/* Передышка в Маме */
+.breath-cta { display: flex; align-items: center; gap: 13px; width: 100%; text-align: left; border: none; font-family: inherit; cursor: pointer;
+  background: linear-gradient(150deg, var(--dusk-soft), var(--card) 76%); border: 1.5px solid color-mix(in srgb, var(--dusk) 20%, transparent);
+  border-radius: 18px; padding: 15px; box-shadow: var(--shadow); transition: transform .15s; }
+.breath-cta:active { transform: scale(.98); }
+.breath-e { font-size: 28px; flex: none; animation: floaty 5s ease-in-out infinite; }
+.breath-cta b { font-size: 15px; font-weight: 750; display: block; }
+.breath-cta .grow span { font-size: 12.5px; color: var(--text2); line-height: 1.45; display: block; margin-top: 2px; }
+.breath-arrow { font-size: 20px; color: var(--text2); flex: none; }
+.mom-affirm-close { text-align: center; font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.5; margin-top: 14px; padding: 0 8px; }

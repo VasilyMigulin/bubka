@@ -1,0 +1,20 @@
+.br-scrim { position: fixed; inset: 0; z-index: 80; background: linear-gradient(160deg, var(--accent-soft), var(--dusk-soft));
+  display: flex; align-items: center; justify-content: center; animation: brFade .3s ease; }
+@keyframes brFade { from { opacity: 0; } to { opacity: 1; } }
+.br-inner { position: relative; width: 100%; max-width: 340px; text-align: center; padding: 30px; }
+.br-x { position: absolute; top: 8px; right: 8px; width: 34px; height: 34px; border-radius: 50%; border: none; background: var(--card);
+  box-shadow: var(--shadow); font-size: 13px; color: var(--text2); cursor: pointer; }
+.br-round { font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin-bottom: 28px; }
+.br-circle-wrap { position: relative; width: 200px; height: 200px; margin: 0 auto 26px; display: flex; align-items: center; justify-content: center; }
+.br-circle { position: absolute; width: 200px; height: 200px; border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, color-mix(in srgb, var(--accent) 55%, #fff), var(--accent));
+  box-shadow: 0 16px 44px color-mix(in srgb, var(--accent) 40%, transparent); transition-timing-function: cubic-bezier(.42,0,.58,1); }
+.br-count { position: relative; z-index: 2; font-size: 46px; font-weight: 750; color: #fff; font-variant-numeric: tabular-nums; }
+.br-label { font-size: 26px; font-weight: 800; letter-spacing: -.02em; }
+.br-sub { font-size: 14px; color: var(--text2); margin-top: 6px; }
+.br-done { animation: brFade .4s ease; }
+.br-done-e { font-size: 56px; }
+.br-done-t { font-size: 24px; font-weight: 800; margin-top: 8px; }
+.br-done p { font-size: 15px; color: var(--text2); line-height: 1.55; margin: 12px 0 22px; }
+.br-btn { background: var(--accent); color: #fff; width: 100%; }
+@media (prefers-reduced-motion: reduce) { .br-circle { transition: none; } }

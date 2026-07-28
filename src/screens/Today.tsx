@@ -7,7 +7,8 @@ import { digestFor } from '../data/digest';
 import { mainToday } from '../data/main';
 import { soonFor } from '../data/soon';
 import { missionFor } from '../data/mission';
-import { PHASES, phaseKey, activityFor } from '../data/sleepPhases';
+import { PHASES, phaseKey, activityFor, ritualSteps } from '../data/sleepPhases';
+import { markSkill } from '../data/skills';
 import { Knowledge } from './Knowledge';
 import { MomPage } from './MomPage';
 import type { Sphere } from '../data/knowledge';
@@ -41,8 +42,9 @@ const MOM_MOODS = [
 const MJKEY = 'bubka-app-mom-journal';
 
 export function Today({ goTab }: { goTab: (t: string) => void }) {
-  const { profile, ageMonths, ageMonthsReal, ageWeeks, day, bump, addWater, toggleSleep, showToast } = useStore();
+  const { profile, setProfile, ageMonths, ageMonthsReal, ageWeeks, day, bump, addWater, toggleSleep, showToast } = useStore();
   const [, tick] = useState(0);
+  const [skillTick, setSkillTick] = useState(0);
   const [drawer, setDrawer] = useState(false);
   const [kb, setKb] = useState<Sphere | 'all' | null>(null);
   const [mom, setMom] = useState(false);
@@ -103,6 +105,7 @@ export function Today({ goTab }: { goTab: (t: string) => void }) {
   const evening = hour >= 18 || hour < 5;
   const MOMENTS = ['как ест сам', 'улыбку после сна', 'любимую игрушку в руках', 'как играет с вами', 'новое движение или навык', 'спящего малыша', 'первую пробу нового вкуса'];
   const moment = MOMENTS[Math.floor(week) % MOMENTS.length];
+  const soon = useMemo(() => soonFor(ageMonths ?? 6), [ageMonths, skillTick]);
 
   const go = (d: Domain) => {
     if (d === 'feeding') goTab('feeding');
@@ -220,7 +223,7 @@ export function Today({ goTab }: { goTab: (t: string) => void }) {
                     ? <><b>Окно прошло</b> — ловите зевки и потирание глаз</>
                     : toWindow <= 20
                       ? <>До вероятной усталости <b>~{toWindow} мин</b></>
-                      : <>Следующий сон ~<b>{clock(nextSleepAt)}</b> · через {toWindow} мин</>}</div>
+                      : <>Следующий сон примерно в <b>{clock(nextSleepAt)}</b></>}</div>
                 </div>
                 <div className="s2-emoji">{phase.e}</div>
               </div>
@@ -236,11 +239,32 @@ export function Today({ goTab }: { goTab: (t: string) => void }) {
               </div>
               <div className="s2-zlabels"><span>Активно</span><span>Спокойно</span><span>Ритуал</span></div>
 
-              {/* Текущая фаза + занятие дня */}
-              <div className="s2-now">
-                <div className="s2-now-t">{phase.label}</div>
-                <div className="s2-act">{pk === 'ritual' || pk === 'overdue' ? 'Сегодня для ритуала: ' : 'Чем занять сейчас: '}<b>{activity}</b></div>
-              </div>
+              {/* Текущая фаза: занятие (актив/спокойно) или полный ритуал */}
+              {pk === 'ritual' || pk === 'overdue' ? (
+                <div className="s2-ritual">
+                  <div className="s2-now-t">{phase.label} · ритуал перед сном</div>
+                  {!profile.sleepMode && (
+                    <div className="s2-mode">
+                      <span>Как укладываете малыша?</span>
+                      <div className="s2-mode-btns">
+                        <button onClick={() => setProfile({ ...profile, sleepMode: 'crib' })}>🛏 В кроватке</button>
+                        <button onClick={() => setProfile({ ...profile, sleepMode: 'cosleep' })}>🤱 Совместный сон</button>
+                      </div>
+                    </div>
+                  )}
+                  <ol className="s2-steps">
+                    {ritualSteps(profile.sleepMode).map((st, i) => (
+                      <li key={i}><span className="rst-e">{st.e}</span>{st.text}</li>
+                    ))}
+                  </ol>
+                  <button className="s2-more" style={{ marginTop: 4 }} onClick={() => setKb('sleep')}>📖 Подробнее про ритуал и фазы</button>
+                </div>
+              ) : (
+                <div className="s2-now">
+                  <div className="s2-now-t">{phase.label}</div>
+                  <div className="s2-act">Чем занять сейчас: <b>{activity}</b></div>
+                </div>
+              )}
 
               <div className="s2-actions">
                 <button className="btn s2-btn" onClick={toggleSleep}>Начать сон</button>
@@ -261,12 +285,16 @@ export function Today({ goTab }: { goTab: (t: string) => void }) {
             <span className="tl-e">🎂</span><span className="grow">{profile.name} исполнится {(ageMonthsReal ?? 0) + 1} мес</span>
           </div>
         )}
-        {soonFor(ageMonths ?? 6).map((s, i) => (
-          <button key={i} className="tl-item" onClick={() => s.sphere && setKb(s.sphere as Sphere)} disabled={!s.sphere}>
+        {soon.map((s, i) => (
+          <div key={i} className="tl-item">
             <span className="tl-dot" /><span className="tl-when">{s.when}</span>
-            <span className="tl-e">{s.e}</span><span className="grow">{s.text}</span>
-            {s.sphere && <span className="tl-arrow">›</span>}
-          </button>
+            <span className="tl-e">{s.e}</span>
+            <span className="grow">
+              {s.text}
+              {s.skill && <button className="tl-know" onClick={() => { markSkill(s.skill!); setSkillTick((t) => t + 1); showToast('🎉', 'Отметили навык', 'Подсказки подстроятся под малыша'); }}>✓ уже умеет</button>}
+            </span>
+            {s.sphere && <button className="tl-arrow" onClick={() => setKb(s.sphere as Sphere)} aria-label="Открыть">›</button>}
+          </div>
         ))}
       </div>
 
@@ -315,13 +343,13 @@ export function Today({ goTab }: { goTab: (t: string) => void }) {
         <button className="tile" onClick={() => setKb('sleep')}><span className="tl-e">😴</span>Сон</button>
         <button className="tile" onClick={() => goTab('dev')}><span className="tl-e">🧩</span>Развитие</button>
         <button className="tile" onClick={() => goTab('baby')}><span className="tl-e">📔</span>Дневник</button>
-        <button className="tile" onClick={() => window.dispatchEvent(new Event('bubka-open-ai'))}><span className="tl-e">✨</span>Бубка</button>
+        <button className="tile" onClick={() => window.dispatchEvent(new Event('bubka-open-ai'))}><span className="tl-e">✦</span>Бубка</button>
         <button className="tile" onClick={() => goTab('baby')}><span className="tl-e">📊</span>Статистика</button>
       </div>
 
       {/* ✨ Бубка — большая карточка */}
       <button className="ai-card rise" onClick={() => window.dispatchEvent(new Event('bubka-open-ai'))}>
-        <div className="ai-card-spark">✨</div>
+        <div className="ai-card-spark">✦</div>
         <div className="grow">
           <div className="ai-card-t">Спросите Бубку</div>
           <div className="ai-card-s">Не ест · плохо спит · что приготовить — подскажу и покажу, что почитать</div>
