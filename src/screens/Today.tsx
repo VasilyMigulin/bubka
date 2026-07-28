@@ -6,6 +6,8 @@ import { Drawer } from '../components/Drawer';
 import { digestFor } from '../data/digest';
 import { mainToday } from '../data/main';
 import { soonFor } from '../data/soon';
+import { missionFor } from '../data/mission';
+import { PHASES, phaseKey, activityFor } from '../data/sleepPhases';
 import { Knowledge } from './Knowledge';
 import { MomPage } from './MomPage';
 import type { Sphere } from '../data/knowledge';
@@ -30,12 +32,13 @@ function wakeWindow(ageM: number): number {
   if (ageM < 1) return 50; if (ageM < 3) return 75; if (ageM < 5) return 105;
   if (ageM < 8) return 150; if (ageM < 12) return 195; return 255;
 }
-function phaseOf(r: number): { e: string; label: string; rec: string } {
-  if (r < 0.5) return { e: '🤸', label: 'Активное бодрствование', rec: 'Самое время для активных игр и движения' };
-  if (r < 0.78) return { e: '🧸', label: 'Спокойная часть', rec: 'Снижайте активность: тихие игры, книжки, приглушённый свет' };
-  if (r < 1) return { e: '🛁', label: 'Пора к ритуалу', rec: 'Притушите свет, спокойные объятия, колыбельная' };
-  return { e: '😴', label: 'Пора укладывать', rec: 'Ловите признаки усталости: зевки, потирание глаз' };
-}
+
+const MOM_MOODS = [
+  { v: 3, e: '😊', l: 'Спокойно', r: 'Здорово! Запомните этот день — такие силы дают трудным дням 💛' },
+  { v: 1, e: '😐', l: 'Устала', r: 'Вы делаете много. Сегодня не стремитесь к идеалу — упростите день, где можно.' },
+  { v: 0, e: '😣', l: 'Очень тяжело', r: 'Вы не одни. Если малыш съел меньше — это не страшно. Попросите близких о часе передышки.' },
+];
+const MJKEY = 'bubka-app-mom-journal';
 
 export function Today({ goTab }: { goTab: (t: string) => void }) {
   const { profile, ageMonths, ageMonthsReal, ageWeeks, day, bump, addWater, toggleSleep, showToast } = useStore();
@@ -43,6 +46,7 @@ export function Today({ goTab }: { goTab: (t: string) => void }) {
   const [drawer, setDrawer] = useState(false);
   const [kb, setKb] = useState<Sphere | 'all' | null>(null);
   const [mom, setMom] = useState(false);
+  const [momMood, setMomMood] = useState<number | null>(null);
   const sleeping = !!day.sleepStart;
   const youngSleep = (ageMonths ?? 0) <= 15;
 
@@ -54,6 +58,21 @@ export function Today({ goTab }: { goTab: (t: string) => void }) {
 
   const week = ageWeeks ?? 0;
   const cards = useMemo(() => digestFor(ageMonths ?? 0, Math.floor(week)), [ageMonths, week]);
+  const daySeed = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 864e5);
+
+  // Миссия дня
+  const MKEY = `bubka-app-mission-${new Date().toDateString()}`;
+  const tasks = useMemo(() => missionFor(ageMonths ?? 6, daySeed), [ageMonths, daySeed]);
+  const [done, setDone] = useState<Set<string>>(() => {
+    try { return new Set(JSON.parse(localStorage.getItem(MKEY) || '[]') as string[]); } catch { return new Set(); }
+  });
+  const toggleTask = (id: string) => setDone((prev) => {
+    const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id);
+    localStorage.setItem(MKEY, JSON.stringify([...n]));
+    if (n.size === tasks.length) showToast('🎉', 'Миссия дня выполнена!', 'Вы сегодня большие молодцы');
+    return n;
+  });
+  const allDone = done.size >= tasks.length;
 
   const ageBar = useMemo(() => {
     if (!profile || ageMonthsReal == null) return { frac: 0, days: 0 };
@@ -71,16 +90,15 @@ export function Today({ goTab }: { goTab: (t: string) => void }) {
   const win = wakeWindow(ageMonths ?? 6);
   const awakeMs = Date.now() - day.awakeSince;
   const r = awakeMs / (win * 60000);
+  const toWindow = Math.round(win - awakeMs / 60000);
   const nextSleepAt = day.awakeSince + win * 60000;
-  const phase = phaseOf(r);
+  const pk = phaseKey(r);
+  const phase = PHASES[pk];
+  const activity = activityFor(pk, daySeed);
   const sleepMs = sleeping ? Date.now() - day.sleepStart! : 0;
   const overdue = !sleeping && youngSleep && r >= 1;
-  const frac = sleeping ? Math.min(1, sleepMs / (90 * 60000)) : Math.min(1, r);
-  const R = 34, C = 2 * Math.PI * R;
 
-  const daySeed = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 864e5);
   const main = useMemo(() => mainToday(ageMonths ?? 6, daySeed, overdue), [ageMonths, daySeed, overdue]);
-
   const hour = new Date().getHours();
   const evening = hour >= 18 || hour < 5;
   const MOMENTS = ['как ест сам', 'улыбку после сна', 'любимую игрушку в руках', 'как играет с вами', 'новое движение или навык', 'спящего малыша', 'первую пробу нового вкуса'];
@@ -93,6 +111,14 @@ export function Today({ goTab }: { goTab: (t: string) => void }) {
     else if (d === 'mom') setMom(true);
   };
   const doMain = () => { if (main.domain === 'sleep' && overdue) toggleSleep(); else go(main.domain); };
+
+  const pickMood = (m: typeof MOM_MOODS[number]) => {
+    setMomMood(m.v);
+    try {
+      const arr = JSON.parse(localStorage.getItem(MJKEY) || '[]');
+      arr.unshift({ ts: Date.now(), mood: m.v }); localStorage.setItem(MJKEY, JSON.stringify(arr.slice(0, 90)));
+    } catch { /* quota */ }
+  };
 
   return (
     <div className="today">
@@ -107,16 +133,7 @@ export function Today({ goTab }: { goTab: (t: string) => void }) {
         <button className="burger" onClick={() => setDrawer(true)} aria-label="Меню">☰</button>
       </div>
 
-      {/* ✨ Одно главное на сегодня */}
-      <button className={`main-card rise ${overdue ? 'urgent' : ''}`} onClick={doMain}>
-        <div className="mc-glow" style={{ background: `radial-gradient(circle, ${TINT_COLOR[main.domain]} 0%, transparent 70%)` }} />
-        <div className="mc-kick">✨ {main.kicker}</div>
-        <div className="mc-e">{main.e}</div>
-        <div className="mc-title">{main.title}</div>
-        <div className="mc-cta">{main.cta} →</div>
-      </button>
-
-      {/* Вечерний режим — экран меняется по времени суток */}
+      {/* Вечерний режим */}
       {evening && (
         <button className="evening-card rise" onClick={() => setMom(true)}>
           <div className="ev-row">
@@ -130,93 +147,38 @@ export function Today({ goTab }: { goTab: (t: string) => void }) {
         </button>
       )}
 
-      {/* Трекер сна с предсказанием и фазой */}
-      {youngSleep && (
-        <div className={`hero-now rise ${sleeping ? 'sleeping' : ''}`}>
-          <div className="top">
-            <div className="grow">
-              <div className="state">{sleeping ? 'Малыш спит' : phase.label}</div>
-              <div className="big-time">{sleeping ? mss(sleepMs) : hhmm(awakeMs)}</div>
-              <div className="until">{sleeping
-                ? <>Таймер идёт · за день сна <b>{fmtMin(sleepShown)}</b></>
-                : overdue
-                  ? <><b>Окно бодрствования прошло</b> — ловите признаки усталости</>
-                  : <>Следующий сон примерно в <b>{clock(nextSleepAt)}</b></>}</div>
-            </div>
-            <svg className="arc" viewBox="0 0 96 96">
-              <circle className="arc-track" cx="48" cy="48" r={R} />
-              <circle className="arc-prog" cx="48" cy="48" r={R} strokeDasharray={C} strokeDashoffset={C * (1 - frac)} transform="rotate(-90 48 48)" />
-              <text x="48" y="60" textAnchor="middle" className="arc-moon">{sleeping ? '🌙' : phase.e}</text>
-            </svg>
-          </div>
-          {!sleeping && <div className="sleep-rec">{phase.rec}</div>}
-          <div className="sleep-actions">
-            <button className="btn btn-dusk" onClick={toggleSleep}>{sleeping ? 'Проснулся' : 'Начать сон'}</button>
-            <button className="sleep-more" onClick={() => setKb('sleep')}>📖 Всё про сон</button>
-          </div>
-          {!sleeping && <div className="sleep-hint">Ориентируйтесь на признаки малыша — время лишь подсказка.</div>}
-        </div>
-      )}
-
-      {/* Как вы, мама? */}
-      <button className="mom-card rise" onClick={() => setMom(true)}>
-        <span className="mom-card-e">🤍</span>
-        <div className="grow">
-          <div className="mom-card-t">Как вы сегодня, мама?</div>
-          <div className="mom-card-s">Минутка для себя — настроение, поддержка и кое-что новое каждый день</div>
-        </div>
-        <span className="mom-card-arrow">›</span>
+      {/* ✨ Одно главное на сегодня — с «почему» */}
+      <button className={`main-card rise ${overdue ? 'urgent' : ''}`} onClick={doMain}>
+        <div className="mc-glow" style={{ background: `radial-gradient(circle, ${TINT_COLOR[main.domain]} 0%, transparent 70%)` }} />
+        <div className="mc-kick">✨ {main.kicker}</div>
+        <div className="mc-e">{main.e}</div>
+        <div className="mc-title">{main.title}</div>
+        {main.why && <div className="mc-why">Почему: {main.why}</div>}
+        <div className="mc-cta">{main.cta} →</div>
       </button>
 
-      {/* День в цифрах */}
-      <div className="sec-head rise"><b>День в цифрах</b><span onClick={() => goTab('baby')}>журнал ›</span></div>
-      <div className="glance rise">
-        <button onClick={() => setKb('sleep')}><div className="ge">😴</div><div className="gv">{fmtMin(sleepShown)}</div><div className="gl">сон</div></button>
-        <button onClick={() => goTab('baby')}><div className="ge">🥣</div><div className="gv">{day.feed}</div><div className="gl">еда</div></button>
-        <button onClick={() => goTab('baby')}><div className="ge">💧</div><div className="gv">{day.water}</div><div className="gl">мл воды</div></button>
-        <button onClick={() => goTab('baby')}><div className="ge">🩲</div><div className="gv">{day.diaper}</div><div className="gl">подгуз.</div></button>
-      </div>
-
-      <div className="quick rise">
-        <button onClick={() => { bump('feed'); showToast('🍼', 'Кормление', `Сегодня уже ${day.feed + 1}`); }}><span className="qe">🍼</span>Кормление</button>
-        <button onClick={() => { bump('diaper'); showToast('🩲', 'Подгузник', 'Записано'); }}><span className="qe">🩲</span>Подгузник</button>
-        <button onClick={() => { addWater(30); showToast('💧', 'Вода', `+30 мл · всего ${day.water + 30}`); }}><span className="qe">💧</span>Вода</button>
-        <button onClick={() => showToast('📷', 'Фото', 'Скоро — добавим в дневник')}><span className="qe">📷</span>Фото</button>
-      </div>
-
-      {/* Быстрые действия — навигация по разделам */}
-      <div className="sec-head rise"><b>Разделы</b><span>всё под рукой</span></div>
-      <div className="tiles rise">
-        <button className="tile" onClick={() => goTab('feeding')}><span className="tl-e">🥑</span>Прикорм</button>
-        <button className="tile" onClick={() => setKb('sleep')}><span className="tl-e">😴</span>Сон</button>
-        <button className="tile" onClick={() => goTab('dev')}><span className="tl-e">🧩</span>Развитие</button>
-        <button className="tile" onClick={() => goTab('baby')}><span className="tl-e">📔</span>Дневник</button>
-        <button className="tile" onClick={() => window.dispatchEvent(new Event('bubka-open-ai'))}><span className="tl-e">✦</span>Спросить ИИ</button>
-        <button className="tile" onClick={() => goTab('baby')}><span className="tl-e">📊</span>Статистика</button>
-      </div>
-
-      {/* Что скоро */}
-      <div className="sec-head rise"><b>Что скоро</b><span>взгляд вперёд</span></div>
-      <div className="soon rise">
-        {ageBar.days <= 25 && (
-          <div className="soon-row">
-            <span className="soon-when">через {ageBar.days} дн</span>
-            <span className="soon-e">🎂</span>
-            <span className="grow">{profile.name} исполнится {(ageMonthsReal ?? 0) + 1} {(ageMonthsReal ?? 0) + 1 === 1 ? 'месяц' : (ageMonthsReal ?? 0) + 1 < 5 ? 'месяца' : 'месяцев'}</span>
+      {/* 🎯 Миссия дня */}
+      <div className="mission rise">
+        <div className="mission-head">
+          <div className="grow">
+            <div className="mission-k">🎯 Миссия дня</div>
+            <div className="mission-p">{allDone ? 'Выполнено! 🎉' : `${done.size} из ${tasks.length} выполнено`}</div>
           </div>
-        )}
-        {soonFor(ageMonths ?? 6).map((s, i) => (
-          <button key={i} className="soon-row" onClick={() => s.sphere && setKb(s.sphere as Sphere)} disabled={!s.sphere}>
-            <span className="soon-when">{s.when}</span>
-            <span className="soon-e">{s.e}</span>
-            <span className="grow">{s.text}</span>
-            {s.sphere && <span className="soon-arrow">›</span>}
+          <div className="mission-bar"><i style={{ width: `${(done.size / tasks.length) * 100}%` }} /></div>
+        </div>
+        {allDone ? (
+          <div className="mission-done">🎉 Миссия дня выполнена! Вы сегодня большие молодцы — и малыш, и вы.</div>
+        ) : tasks.map((t) => (
+          <button key={t.id} className={`mtask ${done.has(t.id) ? 'on' : ''}`} onClick={() => toggleTask(t.id)}>
+            <span className="mt-box">{done.has(t.id) ? '✓' : ''}</span>
+            <span className="mt-e">{t.e}</span>
+            <span className="grow">{t.text}</span>
           </button>
         ))}
       </div>
 
-      {/* Лента */}
-      <div className="sec-head rise"><b>Сегодня с малышом</b><span>{cards.length} карточек</span></div>
+      {/* ❤️ Сегодня с малышом — лента */}
+      <div className="sec-head rise"><b>Сегодня с малышом</b><span>каждый день новое</span></div>
       <div className="carousel rise">
         {cards.map((c, i) => (
           <button key={i} className={`c-card ${TINT[c.domain]}`} onClick={() => go(c.domain)}>
@@ -234,12 +196,135 @@ export function Today({ goTab }: { goTab: (t: string) => void }) {
         </button>
       </div>
 
-      {/* ✦ ИИ — большая карточка внизу */}
+      {/* 😴 Сон — фазы бодрствования, динамичный */}
+      {youngSleep && (
+        <div className={`sleep2 rise ${sleeping ? 'is-sleep' : `ph-${pk}`}`}>
+          {sleeping ? (
+            <>
+              <div className="s2-top">
+                <div className="grow">
+                  <div className="s2-state">🌙 Малыш спит</div>
+                  <div className="s2-time">{mss(sleepMs)}</div>
+                  <div className="s2-sub">Таймер идёт · за день сна {fmtMin(sleepShown)}. Спокойных снов 🤍</div>
+                </div>
+              </div>
+              <button className="btn s2-btn" onClick={toggleSleep}>Проснулся</button>
+            </>
+          ) : (
+            <>
+              <div className="s2-top">
+                <div className="grow">
+                  <div className="s2-state">Бодрствует</div>
+                  <div className="s2-time">{hhmm(awakeMs)}</div>
+                  <div className="s2-sub">{overdue
+                    ? <><b>Окно прошло</b> — ловите зевки и потирание глаз</>
+                    : toWindow <= 20
+                      ? <>До вероятной усталости <b>~{toWindow} мин</b></>
+                      : <>Следующий сон ~<b>{clock(nextSleepAt)}</b> · через {toWindow} мин</>}</div>
+                </div>
+                <div className="s2-emoji">{phase.e}</div>
+              </div>
+
+              {/* Шкала фаз */}
+              <div className="s2-track">
+                <div className="s2-zones">
+                  <span className={`s2-zone z-active ${pk === 'active' ? 'on' : ''}`} />
+                  <span className={`s2-zone z-calm ${pk === 'calm' ? 'on' : ''}`} />
+                  <span className={`s2-zone z-ritual ${pk === 'ritual' || pk === 'overdue' ? 'on' : ''}`} />
+                </div>
+                <div className="s2-marker" style={{ left: `${Math.min(99, r * 100)}%` }} />
+              </div>
+              <div className="s2-zlabels"><span>Активно</span><span>Спокойно</span><span>Ритуал</span></div>
+
+              {/* Текущая фаза + занятие дня */}
+              <div className="s2-now">
+                <div className="s2-now-t">{phase.label}</div>
+                <div className="s2-act">{pk === 'ritual' || pk === 'overdue' ? 'Сегодня для ритуала: ' : 'Чем занять сейчас: '}<b>{activity}</b></div>
+              </div>
+
+              <div className="s2-actions">
+                <button className="btn s2-btn" onClick={toggleSleep}>Начать сон</button>
+                <button className="s2-more" onClick={() => setKb('sleep')}>📖 Про фазы и ритуал</button>
+              </div>
+              <div className="s2-hint">Ориентируйтесь на признаки малыша — время лишь подсказка.</div>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* 🔮 Что скоро — таймлайн */}
+      <div className="sec-head rise"><b>Что скоро</b><span>взгляд вперёд</span></div>
+      <div className="soon-tl rise">
+        {ageBar.days <= 25 && (
+          <div className="tl-item">
+            <span className="tl-dot" /><span className="tl-when">через {ageBar.days} дн</span>
+            <span className="tl-e">🎂</span><span className="grow">{profile.name} исполнится {(ageMonthsReal ?? 0) + 1} мес</span>
+          </div>
+        )}
+        {soonFor(ageMonths ?? 6).map((s, i) => (
+          <button key={i} className="tl-item" onClick={() => s.sphere && setKb(s.sphere as Sphere)} disabled={!s.sphere}>
+            <span className="tl-dot" /><span className="tl-when">{s.when}</span>
+            <span className="tl-e">{s.e}</span><span className="grow">{s.text}</span>
+            {s.sphere && <span className="tl-arrow">›</span>}
+          </button>
+        ))}
+      </div>
+
+      {/* 🤍 Как вы, мама? — интерактивно */}
+      <div className="mom-card rise">
+        <button className="mom-card-main" onClick={() => setMom(true)}>
+          <span className="mom-card-e">🤍</span>
+          <div className="grow">
+            <div className="mom-card-t">Как вы сегодня, мама?</div>
+            <div className="mom-card-s">Минутка только для вас</div>
+          </div>
+          <span className="mom-card-arrow">›</span>
+        </button>
+        {momMood == null ? (
+          <div className="mom-quick">
+            {MOM_MOODS.map((m) => (
+              <button key={m.v} className="mq" onClick={() => pickMood(m)}><span>{m.e}</span>{m.l}</button>
+            ))}
+          </div>
+        ) : (
+          <div className="mom-quick-reply">{MOM_MOODS.find((m) => m.v === momMood)!.r}
+            <button className="mqr-more" onClick={() => setMom(true)}>Открыть пространство мамы →</button>
+          </div>
+        )}
+      </div>
+
+      {/* 📊 День в цифрах */}
+      <div className="sec-head rise"><b>День в цифрах</b><span onClick={() => goTab('baby')}>журнал ›</span></div>
+      <div className="glance rise">
+        <button onClick={() => setKb('sleep')}><div className="ge">😴</div><div className="gv">{fmtMin(sleepShown)}</div><div className="gl">сон</div></button>
+        <button onClick={() => goTab('baby')}><div className="ge">🍽</div><div className="gv">{day.feed}</div><div className="gl">кормлений</div></button>
+        <button onClick={() => goTab('baby')}><div className="ge">💧</div><div className="gv">{day.water}</div><div className="gl">мл воды</div></button>
+        <button onClick={() => goTab('baby')}><div className="ge">🧷</div><div className="gv">{day.diaper}</div><div className="gl">подгуз.</div></button>
+      </div>
+      <div className="quick rise">
+        <button onClick={() => { bump('feed'); showToast('🍼', 'Кормление', `Сегодня уже ${day.feed + 1}`); }}><span className="qe">🍼</span>Кормление</button>
+        <button onClick={() => { bump('diaper'); showToast('🧷', 'Подгузник', 'Записано'); }}><span className="qe">🧷</span>Подгузник</button>
+        <button onClick={() => { addWater(30); showToast('💧', 'Вода', `+30 мл · всего ${day.water + 30}`); }}><span className="qe">💧</span>Вода</button>
+        <button onClick={() => showToast('📷', 'Фото', 'Скоро — добавим в дневник')}><span className="qe">📷</span>Фото</button>
+      </div>
+
+      {/* Разделы */}
+      <div className="sec-head rise"><b>Разделы</b><span>всё под рукой</span></div>
+      <div className="tiles rise">
+        <button className="tile" onClick={() => goTab('feeding')}><span className="tl-e">🥑</span>Прикорм</button>
+        <button className="tile" onClick={() => setKb('sleep')}><span className="tl-e">😴</span>Сон</button>
+        <button className="tile" onClick={() => goTab('dev')}><span className="tl-e">🧩</span>Развитие</button>
+        <button className="tile" onClick={() => goTab('baby')}><span className="tl-e">📔</span>Дневник</button>
+        <button className="tile" onClick={() => window.dispatchEvent(new Event('bubka-open-ai'))}><span className="tl-e">✨</span>Бубка</button>
+        <button className="tile" onClick={() => goTab('baby')}><span className="tl-e">📊</span>Статистика</button>
+      </div>
+
+      {/* ✨ Бубка — большая карточка */}
       <button className="ai-card rise" onClick={() => window.dispatchEvent(new Event('bubka-open-ai'))}>
-        <div className="ai-card-spark">✦</div>
+        <div className="ai-card-spark">✨</div>
         <div className="grow">
-          <div className="ai-card-t">Что вас беспокоит сегодня?</div>
-          <div className="ai-card-s">Не ест · плохо спит · что приготовить — спросите, подскажу и покажу, что почитать</div>
+          <div className="ai-card-t">Спросите Бубку</div>
+          <div className="ai-card-s">Не ест · плохо спит · что приготовить — подскажу и покажу, что почитать</div>
         </div>
         <span className="ai-card-arrow">›</span>
       </button>

@@ -4,7 +4,7 @@ import type { Domain } from '../types';
 
 export interface MainAction {
   minM: number; maxM: number; domain: Domain;
-  e: string; kicker: string; title: string; cta: string;
+  e: string; kicker: string; title: string; cta: string; why?: string;
 }
 
 export const MAIN_ACTIONS: MainAction[] = [
@@ -17,10 +17,10 @@ export const MAIN_ACTIONS: MainAction[] = [
   { minM: 4, maxM: 5, domain: 'feeding', e: '🥄', kicker: 'Сегодня главное', title: 'Проверьте признаки готовности к прикорму', cta: 'Открыть чек-лист' },
   { minM: 3, maxM: 5, domain: 'sleep', e: '💤', kicker: 'Сегодня главное', title: 'Регресс 4 месяцев — держите ритуал, это временно', cta: 'Пережить регресс' },
   // 6–8 мес
-  { minM: 6, maxM: 8, domain: 'feeding', e: '🐟', kicker: 'Сегодня главное', title: 'Познакомить с рыбой — треска мягкая и без костей', cta: 'Как подать' },
-  { minM: 6, maxM: 8, domain: 'development', e: '🧠', kicker: 'Сегодня главное', title: 'Игра дня: перекладываем помпоны — учим пинцетный захват', cta: 'Как играть' },
-  { minM: 6, maxM: 8, domain: 'feeding', e: '🥑', kicker: 'Сегодня главное', title: 'Повторите знакомое — авокадо или брокколи снова', cta: 'Почему повторять' },
-  { minM: 8, maxM: 8, domain: 'sleep', e: '🌙', kicker: 'Сегодня главное', title: 'Увеличьте окно бодрствования на 15 минут', cta: 'Про режим' },
+  { minM: 6, maxM: 8, domain: 'feeding', e: '🐟', kicker: 'Сегодня главное', title: 'Познакомить с рыбой — треска мягкая и без костей', cta: 'Как подать', why: 'рыба — источник омега-3 и белка, важна после полугода' },
+  { minM: 6, maxM: 8, domain: 'development', e: '🧠', kicker: 'Сегодня главное', title: 'Игра дня: перекладываем помпоны — учим пинцетный захват', cta: 'Как играть', why: 'пинцетный захват готовит руку к самостоятельной еде' },
+  { minM: 6, maxM: 8, domain: 'feeding', e: '🥑', kicker: 'Сегодня главное', title: 'Повторите знакомое — авокадо или брокколи снова', cta: 'Почему повторять', why: 'вкус принимается с 8–15 попытки, повторы важнее новинок' },
+  { minM: 8, maxM: 8, domain: 'sleep', e: '🌙', kicker: 'Сегодня главное', title: 'Увеличьте окно бодрствования на 15 минут', cta: 'Про режим', why: 'малыш подрос — старое окно стало коротким, отсюда протесты на укладывание' },
   // 9–12 мес
   { minM: 9, maxM: 12, domain: 'development', e: '👋', kicker: 'Сегодня главное', title: 'Учим махать «пока» и показывать пальцем', cta: 'Игры на общение' },
   { minM: 9, maxM: 12, domain: 'feeding', e: '🍽', kicker: 'Сегодня главное', title: 'Дайте есть руками — мягкие кусочки и ложку', cta: 'Идеи блюд' },

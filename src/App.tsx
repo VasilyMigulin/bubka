@@ -42,12 +42,15 @@ function Shell() {
   const [tab, setTab] = useState<Tab>('today');
   const [aiOpen, setAiOpen] = useState(false);
   const [aiKb, setAiKb] = useState<Sphere | null>(null);
+  const [hint, setHint] = useState(() => !localStorage.getItem('bubka-ai-hint-seen'));
 
   useEffect(() => {
-    const h = () => setAiOpen(true);
+    const h = () => { setAiOpen(true); setHint(false); localStorage.setItem('bubka-ai-hint-seen', '1'); };
     window.addEventListener('bubka-open-ai', h);
     return () => window.removeEventListener('bubka-open-ai', h);
   }, []);
+
+  const openAi = () => { setAiOpen(true); setHint(false); localStorage.setItem('bubka-ai-hint-seen', '1'); };
 
   if (!profile) return <Onboarding />;
 
@@ -66,7 +69,18 @@ function Shell() {
             <span className="ti">{t.icon}</span>{t.label}
           </button>
         ))}
-        <button className={`ai-fab ${aiOpen ? 'on' : ''}`} onClick={() => setAiOpen(true)} aria-label="ИИ-помощник">✦</button>
+        <div className="fab-wrap">
+          {hint && (
+            <div className="fab-hint">
+              <b>Спросите Бубку</b>
+              <span>Ваш помощник всегда рядом 💛</span>
+              <i />
+            </div>
+          )}
+          <button className={`ai-fab ${aiOpen ? 'on' : ''}`} onClick={openAi} aria-label="Бубка — помощник">
+            <span className="fab-pulse" />✨
+          </button>
+        </div>
         {TABS.slice(2).map((t) => (
           <button key={t.key} className={`tab ${tab === t.key ? 'active' : ''}`} onClick={() => setTab(t.key)}>
             <span className="ti">{t.icon}</span>{t.label}

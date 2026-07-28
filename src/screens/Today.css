@@ -172,3 +172,98 @@
 .ai-card-t { font-size: 16px; font-weight: 780; }
 .ai-card-s { font-size: 12.5px; opacity: .9; line-height: 1.45; margin-top: 3px; }
 .ai-card-arrow { font-size: 22px; flex: none; opacity: .8; }
+
+/* «Почему» в Hero */
+.mc-why { font-size: 13px; color: var(--text2); line-height: 1.5; margin-top: 8px; position: relative; }
+
+/* 🎯 Миссия дня */
+.mission { background: var(--card); border-radius: 22px; padding: 16px; box-shadow: var(--shadow-lg); margin-bottom: 14px; }
+.mission-head { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.mission-k { font-size: 15px; font-weight: 800; letter-spacing: -.01em; }
+.mission-p { font-size: 11.5px; color: var(--text2); font-weight: 700; margin-top: 2px; }
+.mission-bar { flex: none; width: 70px; height: 6px; border-radius: 99px; background: var(--elev); overflow: hidden; }
+.mission-bar i { display: block; height: 100%; background: var(--accent); border-radius: 99px; transition: width .5s cubic-bezier(.22,.9,.3,1); }
+.mtask { display: flex; align-items: center; gap: 11px; width: 100%; text-align: left; border: none; font-family: inherit; cursor: pointer;
+  background: var(--elev); border-radius: 14px; padding: 12px 14px; margin-bottom: 7px; font-size: 14px; font-weight: 600; color: var(--text); transition: all .18s; }
+.mtask:last-child { margin-bottom: 0; }
+.mtask:active { transform: scale(.98); }
+.mtask.on { opacity: .6; }
+.mtask.on .grow { text-decoration: line-through; }
+.mt-box { flex: none; width: 24px; height: 24px; border-radius: 8px; border: 2px solid var(--hairline); background: var(--card);
+  display: flex; align-items: center; justify-content: center; font-size: 13px; color: transparent; transition: all .2s; }
+.mtask.on .mt-box { background: var(--accent); border-color: var(--accent); color: #fff; }
+.mt-e { font-size: 18px; flex: none; }
+.mission-done { background: var(--accent-soft); border-radius: 14px; padding: 15px; font-size: 14px; font-weight: 650; line-height: 1.5; color: var(--text);
+  animation: mcPop .5s cubic-bezier(.34,1.56,.64,1) both; }
+
+/* Сон — прогресс-бар окна */
+.wake-bar { height: 6px; border-radius: 99px; background: color-mix(in srgb, var(--dusk) 16%, transparent); overflow: hidden; margin-top: 13px; }
+.wake-bar i { display: block; height: 100%; background: var(--dusk); border-radius: 99px; transition: width 1s linear; }
+.hero-now.sleeping .wake-bar { background: rgba(237,238,246,.14); }
+
+/* Что скоро — таймлайн */
+.soon-tl { position: relative; padding: 4px 2px; }
+.tl-item { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; border: none; background: none; font-family: inherit;
+  padding: 11px 0 11px 20px; position: relative; cursor: pointer; }
+.tl-item:disabled { cursor: default; }
+.tl-item:not(:last-child)::after { content: ''; position: absolute; left: 5px; top: 26px; bottom: -11px; width: 2px; background: var(--hairline); }
+.tl-dot { position: absolute; left: 0; top: 15px; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); border: 3px solid var(--bg); box-sizing: border-box; }
+.tl-when { flex: none; font-size: 10px; font-weight: 800; letter-spacing: .02em; text-transform: uppercase; color: var(--accent); width: 66px; line-height: 1.25; }
+.tl-e { flex: none; font-size: 19px; }
+.soon-tl .grow { font-size: 13px; color: var(--text); line-height: 1.45; }
+.tl-arrow { flex: none; color: var(--text2); font-size: 16px; }
+
+/* Мама — интерактивный чек-ин */
+.mom-card { flex-direction: column; align-items: stretch; gap: 0; padding: 0; overflow: hidden; }
+.mom-card-main { display: flex; align-items: center; gap: 13px; width: 100%; text-align: left; border: none; font-family: inherit; cursor: pointer; background: none; padding: 15px 16px 12px; }
+.mom-quick { display: flex; gap: 8px; padding: 0 16px 15px; }
+.mom-quick .mq { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; border: 1.5px solid var(--hairline); background: var(--card);
+  border-radius: 14px; padding: 10px 2px; font-family: inherit; font-size: 11px; font-weight: 700; color: var(--text); cursor: pointer; transition: all .18s cubic-bezier(.34,1.56,.64,1); }
+.mom-quick .mq:active { transform: scale(.95); }
+.mom-quick .mq span { font-size: 22px; }
+.mom-quick-reply { padding: 0 16px 15px; font-size: 13px; color: var(--text); line-height: 1.5; }
+.mqr-more { display: block; border: none; background: none; font-family: inherit; font-size: 12.5px; font-weight: 750; color: var(--accent); cursor: pointer; margin-top: 8px; padding: 0; }
+
+/* ── Сон v3: фазы бодрствования ── */
+.sleep2 { border-radius: 24px; padding: 18px; margin-bottom: 14px; box-shadow: var(--shadow); transition: background .6s ease; }
+.sleep2.ph-active { background: linear-gradient(155deg, color-mix(in srgb, var(--accent) 16%, var(--card)), var(--card) 76%); }
+.sleep2.ph-calm { background: linear-gradient(155deg, var(--sand-soft), var(--card) 76%); }
+.sleep2.ph-ritual { background: linear-gradient(155deg, var(--dusk-soft), var(--card) 74%); }
+.sleep2.ph-overdue { background: linear-gradient(155deg, color-mix(in srgb, var(--warn) 18%, var(--card)), var(--card) 72%); }
+.sleep2.is-sleep { background: linear-gradient(155deg, #2E3142, #232634); }
+.s2-top { display: flex; align-items: flex-start; gap: 12px; }
+.s2-state { font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--text2); }
+.sleep2.is-sleep .s2-state { color: #9BA2C6; }
+.s2-time { font-size: 40px; font-weight: 750; letter-spacing: -.03em; line-height: 1; margin-top: 5px; font-variant-numeric: tabular-nums; }
+.sleep2.is-sleep .s2-time { color: #EDEEF6; }
+.s2-sub { font-size: 12.5px; color: var(--text2); line-height: 1.45; margin-top: 8px; }
+.s2-sub b { color: var(--text); }
+.sleep2.is-sleep .s2-sub { color: #B9BDD4; } .sleep2.is-sleep .s2-sub b { color: #EDEEF6; }
+.s2-emoji { font-size: 40px; margin-left: auto; animation: floaty 5s ease-in-out infinite; }
+
+/* Шкала фаз */
+.s2-track { position: relative; margin-top: 16px; }
+.s2-zones { display: flex; gap: 4px; height: 8px; }
+.s2-zone { border-radius: 99px; opacity: .32; transition: opacity .4s, transform .4s; }
+.s2-zone.z-active { flex: 55; background: var(--accent); }
+.s2-zone.z-calm { flex: 27; background: var(--sand); }
+.s2-zone.z-ritual { flex: 18; background: var(--dusk); }
+.s2-zone.on { opacity: 1; transform: scaleY(1.35); }
+.s2-marker { position: absolute; top: -3px; width: 14px; height: 14px; border-radius: 50%; background: #fff; border: 3px solid var(--dusk);
+  box-shadow: 0 2px 6px rgba(0,0,0,.2); transform: translateX(-50%); transition: left 1s linear; }
+.s2-zlabels { display: flex; justify-content: space-between; font-size: 9.5px; font-weight: 700; color: var(--text2); margin-top: 7px; padding: 0 2px; }
+
+/* Текущая фаза + занятие */
+.s2-now { background: color-mix(in srgb, var(--card) 55%, transparent); border-radius: 14px; padding: 12px 14px; margin-top: 14px; }
+.s2-now-t { font-size: 14px; font-weight: 750; }
+.s2-act { font-size: 13px; color: var(--text2); line-height: 1.45; margin-top: 3px; }
+.s2-act b { color: var(--text); font-weight: 700; }
+
+.s2-actions { display: flex; gap: 8px; margin-top: 13px; }
+.s2-btn { flex: 1; background: var(--dusk); color: #fff; }
+.sleep2.ph-active .s2-btn { background: var(--accent); }
+.s2-more { flex: none; border: none; font-family: inherit; cursor: pointer; background: color-mix(in srgb, var(--card) 62%, transparent);
+  color: var(--dusk); font-size: 12.5px; font-weight: 700; border-radius: 12px; padding: 0 15px; transition: transform .15s; }
+.s2-more:active { transform: scale(.96); }
+.sleep2.is-sleep .s2-btn { background: rgba(237,238,246,.9); color: #232634; }
+.s2-hint { font-size: 11.5px; color: var(--text2); margin-top: 10px; line-height: 1.45; }
